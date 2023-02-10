@@ -1,0 +1,542 @@
+
+Sqoop = SQL+Hadoop
+===================
+
+MYSQL 
+1) Create a Table 
+          retail_db
+2) Insert 6 Records
+3)bash>sqoop import
+4) ls -l
+5)cat the conetent
+Background: With the help of logs
+==============
+
+-----------------------------------------------------------------------
+ 
+
+mysql -h cxln2.c.thelab-240901.internal -u sqoopuser -pNHkkP876rp
+
+
+use retail_db;
+
+1) Create table
+CREATE TABLE retail_db.customer5(cust_id INT, first_name VARCHAR(20),last_name VARCHAR(20),city VARCHAR(50),age INT,created_dt DATE,trasact_amoount INT);
+2)INSERT   records
+
+INSERT INTO retail_db.customer5 VALUES(1,'Arun','Kumar','Chennai',33,'2015-09-20',100000);
+INSERT INTO retail_db.customer5 VALUES(2,'Srini','Vasan','Chennai',33,'2015-09-21',10000);
+INSERT INTO retail_db.customer5 VALUES(3,'Vasu','devan','Banglore',33,'2015-09-23',90000);
+INSERT INTO retail_db.customer5 VALUES(4,'Mohamed','Imran','Hyderabad',33,'2015-09-24',1000);
+INSERT INTO retail_db.customer5 VALUES(5,'Arun','basker','Chennai',33,'2015-09-20',200000);
+INSERT INTO retail_db.customer5 VALUES(6,'Sai','basker','Chennai',33,'2015-09-20',200000);
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password NHkkP876rp --table customer5 -m 1  --target-dir /user/shishirkantmathur9951/sairam/shrihari_boundary2/; 
+
+Note : From the edgenode where we are running thi import statement there .java file will be generated with tablename.java ,that means all the sqoop code is coverting into java code and executing.
+
+-bash-4.2$ hdfs dfs -ls /user/shishirkantmathur9951/sairam/shrihari_boundary2/
+Found 2 items
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951          0 2023-02-06 15:49 /user/shishirkantmathur9951/sairam/shrihari_boundary2/_SUCCESS
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        256 2023-02-06 15:49 /user/shishirkantmathur9951/sairam/shrihari_boundary2/part-m-00000
+
+Note : part-m-00000 --> m means mappers
+Note : -m 1 means onepart file. -m 2 means Two part files ex: part-m-00000 and part-m-00001 
+        if we have 6 records in the file 3 records will store in one part file and the other hand 3 records in other part file .
+        Maximum mappers we can create is part-m-00000 to part-m-99999
+
+Code generation in sqoop logs
+our table columns VARCHAR and INT  data types will be converting into  STRING and INTEGER
+
+Note: Whenever we run  sqoop Import 3 things will happen in the Backend
+   1) Creation  of the record container 
+   2) Boundary query will be executed
+   3) Data import
+
+when mapper 1
+================
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password NHkkP876rp --table customer5 -m 1  --target-dir /user/shishirkantmathur9951/sairam/mapper_1/; 
+
+This two will execute in the backend
+1) Creation  of the record container 
+ 3) Data import
+
+-bash-4.2$ sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password NHkkP876rp --table customer5 -m 1  --target-dir /user/shishirkan
+tmathur9951/sairam/mapper_1/;
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+23/02/06 16:40:29 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205  ***************************************************Sqoop Version 
+23/02/06 16:40:29 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead. *****Using password in the commadn line is insecure warning  we have to create password file in real time 
+23/02/06 16:40:30 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+23/02/06 16:40:30 INFO tool.CodeGenTool: Beginning code generation **************   1) Creation  of the record container  will start executing 
+23/02/06 16:40:30 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `customer5` AS t LIMIT 1
+23/02/06 16:40:30 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `customer5` AS t LIMIT 1
+23/02/06 16:40:30 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-shishirkantmathur9951/compile/274cd63398af4e92b83073f0b4b656b3/customer5.java uses or overrides a deprecated API. ************* This file which is created in Java and compiling 
+Note: Recompile with -Xlint:deprecation for details.
+23/02/06 16:40:32 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-shishirkantmathur9951/compile/274cd63398af4e92b83073f0b4b656b3/customer5.jar 
+23/02/06 16:40:32 WARN manager.MySQLManager: It looks like you are importing from mysql.****************These all Warings
+23/02/06 16:40:32 WARN manager.MySQLManager: This transfer can be faster! Use the --direct *****************It is related to performence tuning.
+23/02/06 16:40:32 WARN manager.MySQLManager: option to exercise a MySQL-specific fast path.
+23/02/06 16:40:32 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+23/02/06 16:40:32 INFO mapreduce.ImportJobBase: Beginning import of customer5  ******************************   3) Data import 
+23/02/06 16:40:33 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050 *************YARN Architecture 
+23/02/06 16:40:33 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+23/02/06 16:40:36 INFO db.DBInputFormat: Using read commited transaction isolation
+23/02/06 16:40:36 INFO mapreduce.JobSubmitter: number of splits:1
+23/02/06 16:40:36 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_25333
+23/02/06 16:40:36 INFO impl.YarnClientImpl: Submitted application application_1648130833540_25333
+23/02/06 16:40:36 INFO mapreduce.Job: The url to track the job: http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_25333/
+23/02/06 16:40:36 INFO mapreduce.Job: Running job: job_1648130833540_25333
+23/02/06 16:40:43 INFO mapreduce.Job: Job job_1648130833540_25333 running in uber mode : false
+23/02/06 16:40:43 INFO mapreduce.Job:  map 0% reduce 0%
+23/02/06 16:40:53 INFO mapreduce.Job:  map 100% reduce 0%
+23/02/06 16:40:53 INFO mapreduce.Job: Job job_1648130833540_25333 completed successfully
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-bash-4.2$ hdfs dfs -ls sairam/mapper_1
+Found 2 items
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951          0 2023-02-06 16:40 sairam/mapper_1/_SUCCESS
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        256 2023-02-06 16:40 sairam/mapper_1/part-m-00000
+-bash-4.2$ hdfs dfs -cat sairam/mapper_1/p*
+ 
+1,Arun,Kumar,Chennai,33,2015-09-20,100000
+2,Srini,Vasan,Chennai,33,2015-09-21,10000
+3,Vasu,devan,Banglore,33,2015-09-23,90000
+4,Mohamed,Imran,Hyderabad,33,2015-09-24,1000
+5,Arun,basker,Chennai,33,2015-09-20,200000
+6,Sai,basker,Chennai,33,2015-09-20,200000
+-bash-4.2$ 
+-bash-4.2$ 
+
+When mappers 2
+==================
+This 3 will execute in the backend
+   1) Creation  of the record container 
+   2) Boundary query will be executed
+   3) Data import
+
+Note: --split-by cust_id  ====>>> Deviding the file with the cust_id column  
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password NHkkP876rp --table customer5  --split-by cust_id -m 2  --target-dir /user/shishirkantmathur9951/sairam/mapper-2/; 
+
+
+-bash-4.2$ sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password NHkkP876rp --table customer5  --
+split-by cust_id -m 2  --target-dir /user/shishirkantmathur9951/sairam/mapper-2/; 
+
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+23/02/06 17:19:09 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+23/02/06 17:19:09 WARN tool.BaseSqoopTool: Setting your password on the command-line is insecure. Consider using -P instead.
+23/02/06 17:19:09 INFO manager.MySQLManager: Preparing to use a MySQL streaming resultset.
+23/02/06 17:19:09 INFO tool.CodeGenTool: Beginning code generation
+23/02/06 17:19:09 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `customer5` AS t LIMIT 1
+23/02/06 17:19:10 INFO manager.SqlManager: Executing SQL statement: SELECT t.* FROM `customer5` AS t LIMIT 1
+23/02/06 17:19:10 INFO orm.CompilationManager: HADOOP_MAPRED_HOME is /usr/hdp/2.6.2.0-205/hadoop-mapreduce
+Note: /tmp/sqoop-shishirkantmathur9951/compile/ec54b6aaeed5e8371cb0bad1210b0a00/customer5.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+23/02/06 17:19:11 INFO orm.CompilationManager: Writing jar file: /tmp/sqoop-shishirkantmathur9951/compile/ec54b6aaeed5e8371cb0bad1210b0a00/customer5.jar
+23/02/06 17:19:11 WARN manager.MySQLManager: It looks like you are importing from mysql.
+23/02/06 17:19:11 WARN manager.MySQLManager: This transfer can be faster! Use the --direct
+23/02/06 17:19:11 WARN manager.MySQLManager: option to exercise a MySQL-specific fast path.
+23/02/06 17:19:11 INFO manager.MySQLManager: Setting zero DATETIME behavior to convertToNull (mysql)
+23/02/06 17:19:11 INFO mapreduce.ImportJobBase: Beginning import of customer5   ******************    3) Data import this is the costlier process
+23/02/06 17:19:13 INFO client.RMProxy: Connecting to ResourceManager at cxln2.c.thelab-240901.internal/10.142.1.2:8050
+23/02/06 17:19:13 INFO client.AHSProxy: Connecting to Application History server at cxln2.c.thelab-240901.internal/10.142.1.2:10200
+23/02/06 17:19:15 INFO db.DBInputFormat: Using read commited transaction isolation
+23/02/06 17:19:15 INFO db.DataDrivenDBInputFormat: BoundingValsQuery: SELECT MIN(`cust_id`), MAX(`cust_id`) FROM `customer5` ***********************2) Boundary query will be executed
+23/02/06 17:19:15 INFO db.IntegerSplitter: Split size: 2; Num splits: 2 from: 1 to: 6  ***************************that means 6%2 ==> 3 records in each part file 
+23/02/06 17:19:15 INFO mapreduce.JobSubmitter: number of splits:2
+23/02/06 17:19:15 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1648130833540_25334
+23/02/06 17:19:16 INFO impl.YarnClientImpl: Submitted application application_1648130833540_25334
+23/02/06 17:19:16 INFO mapreduce.Job: The url to track the job: http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_25334/
+23/02/06 17:19:16 INFO mapreduce.Job: Running job: job_1648130833540_25334
+23/02/06 17:19:24 INFO mapreduce.Job: Job job_1648130833540_25334 running in uber mode : false
+23/02/06 17:19:24 INFO mapreduce.Job:  map 0% reduce 0%
+23/02/06 17:19:30 INFO mapreduce.Job:  map 50% reduce 0%
+23/02/06 17:19:31 INFO mapreduce.Job:  map 100% reduce 0%
+23/02/06 17:19:31 INFO mapreduce.Job: Job job_1648130833540_25334 completed successfully
+
+------------------------------------------------------------------------
+
+BoundingValsQuery: SELECT MIN(`cust_id`), MAX(`cust_id`) FROM `customer5` 
+
+Min is 1 and max is 6  from customer
+
+-bash-4.2$ hdfs dfs -ls sairam/mapper-2/
+Found 3 items
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951          0 2023-02-06 17:19 sairam/mapper-2/_SUCCESS
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        126 2023-02-06 17:19 sairam/mapper-2/part-m-00000
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        130 2023-02-06 17:19 sairam/mapper-2/part-m-00001
+-bash-4.2$ hdfs dfs -cat sairam/mapper-2/part-m-00000
+1,Arun,Kumar,Chennai,33,2015-09-20,100000
+2,Srini,Vasan,Chennai,33,2015-09-21,10000
+3,Vasu,devan,Banglore,33,2015-09-23,90000
+-bash-4.2$ hdfs dfs -cat sairam/mapper-2/part-m-00001
+4,Mohamed,Imran,Hyderabad,33,2015-09-24,1000
+5,Arun,basker,Chennai,33,2015-09-20,200000
+6,Sai,basker,Chennai,33,2015-09-20,200000
+-bash-4.2$ 
+
+How you manage password ? Ans: Manage through password file .
+
+If the password file is in Edge node
+------------------------------------------
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  file:///home/shishirkantmathur9951/arun/passwordfile5  --table customer5  --split-by cust_id -m 2  --target-dir /user/shishirkantmathur9951/sairam/mapperpasswordfile-2/; 
+
+If the password file is in hdfs
+------------------------------------------
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5  --table customer5  --split-by cust_id -m 2  --target-dir /user/shishirkantmathur9951/sairam/mapperpasswordfile1-2/; 
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Incremental Append
+====================
+The data which is updated or appended in RDBMS that we have to append or update in the hadoof  in the same file 
+-->It will work on three columns :Date ,Timestramp and INT
+Note: Greater than 
+         In incremental append it works on single line statement greater than in our case 6
+
+--incremental append
+--last-value 6
+--check-column sustid
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5  --table customer5  --split-by cust_id -m 2  --target-dir /user/shishirkantmathur9951/sairam/Incremental_append1/; 
+
+
+ 
+
+INSERT INTO retail_db.customer5 VALUES(12,'Sai','basker','Chennai',36,'2015-09-23',200000);
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5  --table customer5  --split-by cust_id -m 2  --incremental append --last-value 11  --check-column cust_id --target-dir /user/shishirkantmathur9951/sairam/Incremental_append1/; 
+
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951         46 2023-02-06 19:16 /user/shishirkantmathur9951/sairam/Incremental_append1/part-m-00004
+
+Observation Note : for each incremental append import though -m 2 , new part files will be created in the hdfs.
+
+Scenario based 
+----------------------
+1)Run the sqoop import Twice which is not incremental append  and write the observetions ?
+
+2) lets say if we have 
+1
+2
+3
+4
+5
+6
+7
+12
+--> the data is till here  then inserted below duplicates 3 times
+13 -->1
+13 -->2
+14
+13-->4
+13-->3
+
+Solving this 
+===========
+1) sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5  --table customer5  --split-by cust_id -m 2  --target-dir /user/shishirkantmathur9951/sairam/Incremental_append1/; 
+Ans: Will get error as ERROR tool.ImportTool: Encountered IOException running import job: org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory hdfs://cxln1.c.thelab-240901.
+
+2)
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5  --table customer5  --split-by cust_id -m 2  --incremental append --last-value 12  --check-column cust_id --target-dir /user/shishirkantmathur9951/sairam/Incremental_append1/; 
+
+Observational notes:Two more partfiles created and  duplicate records are in one partfile and other records are in another partfile.
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        184 2023-02-06 19:35 /user/shishirkantmathur9951/sairam/Incremental_append1/part-m-00005
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951         46 2023-02-06 19:35 /user/shishirkantmathur9951/sairam/Incremental_append1/part-m-00006
+-bash-4.2$ hdfs dfs -cat /user/shishirkantmathur9951/sairam/Incremental_append1/part-m-00005
+13,Sriram,basker,Chennai,36,2015-09-23,200000
+13,Sriram,basker,Chennai,36,2015-09-23,200000
+13,Sriram,basker,Chennai,36,2015-09-23,200000
+13,Sriram,basker,Chennai,36,2015-09-23,200000
+-bash-4.2$ hdfs dfs -cat /user/shishirkantmathur9951/sairam/Incremental_append1/part-m-00006
+14,Sriram,basker,Chennai,36,2015-09-23,200000
+-bash-4.2$ 
+Conclusion : Sqoop can't handle duplicate records as we wanted .But in real time we use Primary key on the column which we want split the column in sqoop import.
+==================================================================================
+sqoop Job
+---------------
+If we keep incremental imports run we better use sqoop job
+IN sqoop job we use date column
+sqoop job : It will take care of last value
+
+Scenario based:
+1)Do the normal import
+2)Insert one record
+3)Wrte a sqoop job
+4)execute sqoop 
+
+1st step
+CREATE TABLE retail_db.customer6(cust_id INT, first_name VARCHAR(20),last_name VARCHAR(20),city VARCHAR(50),age INT,created_dt DATE,trasact_amoount INT);
+2nd step
+INSERT INTO retail_db.customer6 VALUES(1,'Arun','Kumar','Chennai',33,'2015-09-20',100000);
+INSERT INTO retail_db.customer6 VALUES(2,'Srini','Vasan','Chennai',33,'2015-09-21',10000);
+INSERT INTO retail_db.customer6 VALUES(3,'Vasu','devan','Banglore',33,'2015-09-23',90000);
+INSERT INTO retail_db.customer6 VALUES(4,'Mohamed','Imran','Hyderabad',33,'2015-09-24',1000);
+INSERT INTO retail_db.customer5 VALUES(5,'Arun','basker','Chennai',33,'2015-09-20',200000);
+INSERT INTO retail_db.customer6 VALUES(6,'Sai','basker','Chennai',33,'2015-09-20',200000);
+step 3
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer6 -m 1  --target-dir /user/shishirkantmathur9951/sairam/sqoop_job1/; 
+
+step 4
+append the data in RDBMS
+INSERT INTO retail_db.customer6 VALUES(7,'Yamini','basker','Chennai',33,'2015-09-20',200000);
+
+job means doing some job right and dialy are loging to
+
+How to make a sqoop job?
+syntax:
+------------
+sqoop job --create <Jobname > connection string  | Incremental append 
+
+sqoop job --create a_job  -- import   --connect  jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer6 -m 1 --incremental append --check-column cust_id  --last-value 0  --target-dir /user/shishirkantmathur9951/sairam/sqoop_job2/; 
+
+--> the above command will create the job only will n ot execute the sqoop import
+
+--> Now execute the above job 
+       sqoop job --exec  job_sqoop1
+
+--> To see the last value 
+
+-bash-4.2$ sqoop job -show a_job
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/hadoop/lib/slf4j-log4j12-1.7.10.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/usr/hdp/2.6.2.0-205/accumulo/lib/slf4j-log4j12.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+23/02/06 21:28:58 INFO sqoop.Sqoop: Running Sqoop version: 1.4.6.2.6.2.0-205
+Job: a_job
+Tool: import
+Options:
+----------------------------
+verbose = false
+hcatalog.drop.and.create.table = false
+incremental.last.value = 7  ****************************Here is the last value of sqoop job 
+db.connect.string = jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db
+codegen.output.delimiters.escape = 0
+codegen.output.delimiters.enclose.required = false
+codegen.input.delimiters.field = 0
+mainframe.input.dataset.type = p
+
+Scenario based 
+-------------------------
+Lets say i have created sqoop job moved six records 
+1
+2
+3
+4
+6
+7
+ so 5 were missing  then i inserted in table and run again will it move the data to hdfs 
+Ans: No, since last value updated in sqoop job is 7 so 5 is less than 7 
+Maximal id query for free form incremental import: SELECT MAX(`cust_id`) FROM `customer6`
+
+where is the last vallue is storing in ?Ans: In the metastore
+ls  -lart
+cd .sqoop
+cat metastore.db.script
+
+sqoop job -list --> To list the sqoop job 
+sqoop job -show <Jobname> --> To show the sqoop job details
+sqoop job --exec <Job name> --> To Execute  the sqoop job 
+
+
+sqoop change data capture :The data got changed at RDBMS side then we have to update at the HDFS side this is called incremental append .
+Hue setup
+sqoop semi structured import
+sqoop export properties 
+sqoop merge 
+sqoop staging
+sqoop performance tuning 
+
+Incremental last modified
+=============================
+Does sqoop has reducer ?
+Ans: We have reducer in sqoop happens beacuse of incremental last modified 
+updated RDBMS data will compare the data with hdfs data that time reducers will trigger and update the data in the node .
+
+Scenario based:
+---------------------------
+Create a table 
+Import the data 
+Update the column in RDBMS
+do sqoop last modified 
+ check  in the hdfs location for the last modied updated data 
+
+1)Create a table 
+CREATE TABLE retail_db.customer7(cust_id INT, first_name VARCHAR(20),last_name VARCHAR(20),city VARCHAR(50),age INT,created_dt DATE,trasact_amoount INT);
+
+INSERT INTO retail_db.customer7 VALUES(1,'Arun','Kumar','Chennai',33,'2015-09-20',100000);
+INSERT INTO retail_db.customer7 VALUES(2,'Srini','Vasan','Chennai',33,'2015-09-21',10000);
+INSERT INTO retail_db.customer7 VALUES(3,'Vasu','devan','Banglore',33,'2015-09-23',90000);
+INSERT INTO retail_db.customer7 VALUES(4,'Mohamed','Imran','Hyderabad',33,'2015-09-24',1000);
+INSERT INTO retail_db.customer7 VALUES(5,'Arun','basker','Chennai',33,'2015-09-20',200000);
+INSERT INTO retail_db.customer7 VALUES(6,'Sai','basker','Chennai',33,'2015-09-20',200000);
+2)Import the data 
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer7 -m 1  --target-dir /user/shishirkantmathur9951/sairam/Incremental_last/; 
+
+Note: Incremental  append ======> Greater than 
+Note: INcremental last modified ===========> from that day ================> date and timestramp
+we will notify  sqoop with 
+--incremental lastmodified
+--check-column : from where the comparision start(we have to supply date or timestarmp)
+                                                      comaprision means  comparion between RDBMS and HDFS 
+--last-value : what would be the last value 
+
+--merge-key=======>cust_id  will do comaprision b/w rdbms and Hdfs 
+
+3)Update the column in RDBMS
+
+UPDATE retail_db.customer7 SET  first_name = 'Frog' WHERE cust_id = 4;
+
+4)do sqoop last modified 
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer7 -m 1  --incremental lastmodified --check-column created_dt  --last-value  2015-09-24 --merge-key cust_id --target-dir /user/shishirkantmathur9951/sairam/Incremental_last/; 
+
+23/02/07 01:51:24 INFO mapreduce.Job: The url to track the job: http://cxln2.c.thelab-240901.internal:8088/proxy/application_1648130833540_25348/
+23/02/07 01:51:24 INFO mapreduce.Job: Running job: job_1648130833540_25348
+23/02/07 01:51:32 INFO mapreduce.Job: Job job_1648130833540_25348 running in uber mode : false
+23/02/07 01:51:32 INFO mapreduce.Job:  map 0% reduce 0%
+23/02/07 01:51:42 INFO mapreduce.Job:  map 100% reduce 0%
+23/02/07 01:51:48 INFO mapreduce.Job:  map 100% reduce 100% ********************* reducer is working for comaring data in RDMBS and HDFS
+23/02/07 01:51:48 INFO mapreduce.Job: Job job_1648130833540_25348 completed successfully
+
+-bash-4.2$ hdfs dfs -ls sairam/Incremental_last/
+Found 2 items
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951          0 2023-02-07 01:51 sairam/Incremental_last/_SUCCESS
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        253 2023-02-07 01:51 sairam/Incremental_last/part-r-00000
+-bash-4.2$ hdfs dfs -cat sairam/Incremental_last/part-r-00000
+1,Arun,Kumar,Chennai,33,2015-09-20,100000
+2,Srini,Vasan,Chennai,33,2015-09-21,10000
+3,Vasu,devan,Banglore,33,2015-09-23,90000
+4,Frog,Imran,Hyderabad,33,2015-09-24,1000
+5,Arun,basker,Chennai,33,2015-09-20,200000
+6,Sai,basker,Chennai,33,2015-09-20,200000
+-bash-4.2$ 
+
+Duplicate Records
+========================
+In case of duplicate records data will take very first occurance recent modified to duplicate record that will get update in the hdfs system
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer7 -m 1  --incremental lastmodified --check-column created_dt  --last-value  2015-09-24 --merge-key cust_id --target-dir /user/shishirkantmathur9951/sairam/Incremental_last/; 
+
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951          0 2023-02-07 02:07 sairam/Incremental_last/_SUCCESS
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951        253 2023-02-07 02:07 sairam/Incremental_last/part-r-00000
+-bash-4.2$ hdfs dfs -cat sairam/Incremental_last/part-r-00000
+1,Arun,Kumar,Chennai,33,2015-09-20,100000
+2,Srini,Vasan,Chennai,33,2015-09-21,10000
+3,Vasu,devan,Banglore,33,2015-09-23,90000
+4,Frog,Imran,Hyderabad,33,2015-09-24,1000
+5,Arun,basker,Chennai,33,2015-09-20,200000
+6,Sai,basker,Chennai,33,2015-09-20,2
+
+what would happen if we don't give 
+--merger-key  =======> error
+
+what would happen if we don't give
+-last-value ========>
+
+--> If we don't give above keys it will become simple import
+
+File Formats
+==========================
+file formats: Avro 
+  		Parquet
+		ORC
+1) How to import the data in different file formats
+2)File-size
+3)Data
+4)USES
+
+Avro:
+====== 
+
+Scenario based 
+--------------------------
+if at all we we have to add columns we should use AVRO file format becuase 
+AVRO has a schema evolution .
+
+1st day in RDBMS  500 column data is there and we did sqoop import in the hdfs and created hive table on top it then queried  it will give 500 coulmns data 
+
+next day 100 more columns got increased we have to reflect in the Hive select query  then we should move .avse file from edge node to  hdfs the file which is created at the time of import in the hadoop 
+.avse file will be in json file format .
+while import 2 files generated on the edge node .avse and .java file 
+So that columns we can get refelect in the hive query .
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer7 -m 1  --target-dir /user/shishirkantmathur9951/sairam/Avrodata  -as-avrodatafile;
+
+1)File-size is : 1108
+2)Data: Binary 
+3)Schema : Json format
+4)file extenion : .avro 
+5)uses:for Schema evolution. 
+if you want any modfication :  vi  table7.avse
+changeit and move it to hdfs 
+ 
+Note: Write is easy  since it is row based approach
+          Read is slow
+
+Parquet file format
+-------------------------------
+Column based approach 
+ 1)write is slow 
+ 2)Read is fast
+
+1,naga,juluru
+2,arun,hud
+3,kehat,pune
+
+custid : 1,2,3
+customername: nag,arun,kehat
+City:juluru,hyd,pune
+
+if i have to perform select * from info where custname = 'nag';
+
+so it will go directly on that column then retrive data fast so parquet data is read is very fast .
+
+
+sqoop import --connect jdbc:mysql://cxln2.c.thelab-240901.internal/retail_db --username sqoopuser --password-file  hdfs:///user/shishirkantmathur9951/arun/passwordfile5 --table customer7 -m 1  --target-dir /user/shishirkantmathur9951/sairam/parquet  -as-parquetfile;
+
+-bash-4.2$ hdfs dfs -ls sairam/parquet
+Found 3 items
+drwxr-xr-x   - shishirkantmathur9951 shishirkantmathur9951          0 2023-02-07 15:59 sairam/parquet/.metadata
+drwxr-xr-x   - shishirkantmathur9951 shishirkantmathur9951          0 2023-02-07 15:59 sairam/parquet/.signals
+-rw-r--r--   3 shishirkantmathur9951 shishirkantmathur9951       2013 2023-02-07 15:59 sairam/parquet/61fb042b-a0ef-4477-b9f3-059978ec5715.parquet
+-bash-4.2$ 
+
+1)File-size is : 2013 files is size is more compared to avro file format 
+2)Data: Binary 
+3)Schema : parquet.avro.schema
+4)file extenion : .parquet
+5) Uses: analytics purpose. 
+
+Obseravation : Size of the parquet file is more comapared to avro file why ?
+
+
+ORC:
+=========
+Legacy data
+future use
+less storage space
+ compression
+     Gzip.snappy
+Gzip compression along with snappy
+
+Task:
+   1.Read the parquet data with the help of spark 
+   2.Write the oRc data to some file location.
+
+In the real time 
+AVRO : If Number of columns will increase or decrease then we will choose Avro file format.Since we have dynamic schema evalution feature in Avro file format .(Evolution means altering columns on the table )
+       
+PARQUET : If its a analytics project will choose paruet since read is very fast to do Aggrigations.
+
+ORC: if data is use for future use means legacy data since it accupy less space .
+
+
+
+
